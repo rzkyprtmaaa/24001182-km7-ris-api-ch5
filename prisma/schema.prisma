@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model availability {
+  id           BigInt  @id @default(autoincrement())
+  rent_perday  Int
+  available_at String  @db.VarChar(255)
+  available    Boolean
+  cars         cars[]
+}
+
+model car_details {
+  id           BigInt @id @default(autoincrement())
+  capacity     Int
+  transmission String @db.VarChar(255)
+  plate        String @db.VarChar(255)
+  year         Int
+  image        String
+  description  String
+  cars_id      BigInt
+  cars         cars   @relation(fields: [cars_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model cars {
+  id              BigInt        @id @default(autoincrement())
+  manufacture_id  BigInt
+  model_id        BigInt
+  availability_id BigInt
+  car_details     car_details[]
+  availability    availability  @relation(fields: [availability_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  manufactures    manufactures  @relation(fields: [manufacture_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  models          models        @relation(fields: [model_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  options         options[]
+  specs           specs[]
+}
+
+model manufactures {
+  id   BigInt @id @default(autoincrement())
+  name String @db.VarChar(255)
+  cars cars[]
+}
+
+model models {
+  id    BigInt @id @default(autoincrement())
+  model String @db.VarChar(255)
+  type  String @db.VarChar(255)
+  cars  cars[]
+}
+
+model option_details {
+  id      BigInt    @id @default(autoincrement())
+  option  String?   @db.VarChar(255)
+  options options[]
+}
+
+model options {
+  id                BigInt          @id @default(autoincrement())
+  cars_id           BigInt?
+  option_details_id BigInt?
+  cars              cars?           @relation(fields: [cars_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  option_details    option_details? @relation(fields: [option_details_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model spec_details {
+  id    BigInt  @id @default(autoincrement())
+  spec  String? @db.VarChar(255)
+  specs specs[]
+}
+
+model specs {
+  id              BigInt        @id @default(autoincrement())
+  cars_id         BigInt?
+  spec_details_id BigInt?
+  cars            cars?         @relation(fields: [cars_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  spec_details    spec_details? @relation(fields: [spec_details_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  id              BigInt  @id(map: "users_pk") @default(autoincrement())
+  name            String  @db.VarChar
+  email           String  @unique(map: "users_email_idx") @db.VarChar
+  password        String  @db.VarChar
+  profile_picture String? @db.VarChar
+  role_id         Int     @default(2)
+}
